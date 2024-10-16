@@ -1,12 +1,102 @@
-<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
 <!DOCTYPE html>
 <html lang="en" ng-app="loginApp">
+
 <head>
     <meta charset="UTF-8">
     <title>Login</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        .mfa-container {
+            margin-top: 20px;
+        }
+
+        .mfa-container input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .mfa-container button {
+            background-color: #007bff;
+        }
+
+        .mfa-container button:hover {
+            background-color: #0056b3;
+        }
+
+        .error {
+            color: red;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .container form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+    </style>
 </head>
+
 <body ng-controller="LoginController">
-    <div>
+    <!-- Login Form -->
+    <div class="container" ng-show="!showMFA">
         <h2>Login</h2>
         <form ng-submit="login()">
             <input type="email" ng-model="email" placeholder="Email" required /><br>
@@ -15,10 +105,12 @@
         </form>
     </div>
 
-    <div ng-if="showMFA">
+    <!-- MFA Verification Form -->
+    <div class="container mfa-container" ng-show="showMFA">
         <h2>Enter MFA Code</h2>
         <form ng-submit="verifyMFA()">
-            <input type="text" ng-model="otp" placeholder="Enter OTP" required /><br>
+            <input type="text" ng-model="otp" placeholder="Enter OTP" required />
+            <br>
             <button type="submit">Verify</button>
         </form>
     </div>
@@ -29,12 +121,14 @@
         app.controller('LoginController', function ($scope, $http) {
             $scope.showMFA = false;
             $scope.token = null;
+            $scope.otp = '';
 
+            // Hàm login
             $scope.login = function () {
                 $http.post('http://localhost:3000/api/auth/login', { email: $scope.email, password: $scope.password })
                     .then(function (response) {
                         $scope.token = response.data.token;
-                        $scope.showMFA = true; // Show MFA form
+                        $scope.showMFA = true; // Hiển thị form MFA
                         console.log($scope.token);
                     })
                     .catch(function (error) {
@@ -42,17 +136,21 @@
                     });
             };
 
+            // Hàm verify MFA
             $scope.verifyMFA = function () {
+                console.log("Token: ", $scope.token);
+                console.log("OTP: ", $scope.otp);
                 $http.post('http://localhost:3000/api/auth/verify-mfa', { token: $scope.token, otp: $scope.otp })
                     .then(function (response) {
                         alert('Login successful');
                     })
                     .catch(function (error) {
                         alert('Invalid OTP');
+                        console.log(error)
                     });
-            
             };
         });
     </script>
 </body>
+
 </html>
