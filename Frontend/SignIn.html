@@ -96,16 +96,17 @@
 
 <body ng-controller="LoginController">
     <!-- Login Form -->
-    <div class="container" ng-show="!showMFA">
+    <div class="container" ng-show="!showMFA && !showRegister">
         <h2>Login</h2>
         <form ng-submit="login()">
             <input type="email" ng-model="email" placeholder="Email" required /><br>
             <input type="password" ng-model="password" placeholder="Password" required /><br>
             <button type="submit">Login</button>
         </form>
+        <p>Don't have an account? <a href="#" ng-click="showRegisterForm()">Register here</a></p>
     </div>
 
-    <!-- MFA Verification Form -->
+    <!-- Verify MFA Form -->
     <div class="container mfa-container" ng-show="showMFA">
         <h2>Enter MFA Code</h2>
         <form ng-submit="verifyMFA()">
@@ -115,20 +116,37 @@
         </form>
     </div>
 
+    <!-- Register Form -->
+    <div class="container" ng-show="showRegister">
+        <h2>Register</h2>
+        <form ng-submit="register()">
+            <input type="email" ng-model="registerEmail" placeholder="Email" required /><br>
+            <input type="password" ng-model="registerPassword" placeholder="Password" required /><br>
+            <button type="submit">Register</button>
+        </form>
+        <p>Already have an account? <a href="#" ng-click="showLoginForm()">Login here</a></p>
+    </div>
+ 
+     <!-- Script and Call API -->
     <script>
         var app = angular.module('loginApp', []);
 
         app.controller('LoginController', function ($scope, $http) {
             $scope.showMFA = false;
+            $scope.showRegister = false;
             $scope.token = null;
             $scope.otp = '';
+            $scope.email = '';
+            $scope.password = '';
+            $scope.registerEmail = '';
+            $scope.registerPassword = '';
 
-            // Hàm login
+            // Hàm đăng nhập
             $scope.login = function () {
                 $http.post('http://localhost:3000/api/auth/login', { email: $scope.email, password: $scope.password })
                     .then(function (response) {
                         $scope.token = response.data.token;
-                        $scope.showMFA = true; // Hiển thị form MFA
+                        $scope.showMFA = true; 
                         console.log($scope.token);
                     })
                     .catch(function (error) {
@@ -146,8 +164,32 @@
                     })
                     .catch(function (error) {
                         alert('Invalid OTP');
-                        console.log(error)
+                        console.log(error);
                     });
+            };
+
+            // Hàm đăng ký
+            $scope.register = function () {
+                const data = { email: $scope.registerEmail, password: $scope.registerPassword };
+                $http.post('http://localhost:3000/api/auth/register', data)
+                    .then(function (response) {
+                        alert('Registration successful');
+                        $scope.showRegister = false;
+                    })
+                    .catch(function (error) {
+                        alert('Registration failed');
+                        console.log(error);
+                    });
+            };
+
+          
+            $scope.showRegisterForm = function () {
+                $scope.showRegister = true;
+            };
+
+           
+            $scope.showLoginForm = function () {
+                $scope.showRegister = false;
             };
         });
     </script>
