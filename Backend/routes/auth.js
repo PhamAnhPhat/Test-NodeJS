@@ -1,15 +1,15 @@
 const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const speakeasy = require('speakeasy'); // MFA
-const nodemailer = require('nodemailer'); // Email OTP
+const speakeasy = require('speakeasy'); 
+const nodemailer = require('nodemailer'); 
 const router = express.Router();
 require('dotenv').config();
 
-const users = []; // Giả lập DB đơn giản
-const SECRET_KEY = '123456'; // JWT key
+const users = []; 
+const SECRET_KEY = '123456'; 
 
-// Dummy email OTP setup
+
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -17,7 +17,7 @@ const transporter = nodemailer.createTransport({
         pass: process.env.PASS
     },
     tls: {
-        rejectUnauthorized: false  // Tắt kiểm tra chứng chỉ SSL
+        rejectUnauthorized: false 
     }
 });
 
@@ -39,11 +39,11 @@ router.post('/login', async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) return res.status(401).send('Invalid password!');
 
-    // Generate MFA secret
+    // Tạo mã MFA
     const secret = speakeasy.generateSecret();
     const token = jwt.sign({ email, secret: secret.base32 }, SECRET_KEY, { expiresIn: '15m' });
 
-    // Send OTP (for example via email)
+    // Điền thông tin chuẩn bị gửi OTP
     const otp = speakeasy.totp({ secret: secret.base32, encoding: 'base32' });
     const mailOptions = {
         from:  process.env.EMAIL,
@@ -52,12 +52,12 @@ router.post('/login', async (req, res) => {
         text: `Your OTP is ${otp}`
     };
     
-    // Send email and log the response
+    // Gửi MFA qua mail
     transporter.sendMail(mailOptions, (err, info) => {
         if (err) {
-            console.log('Error while sending email:', err); // Log lỗi nếu có
+            console.log('Error while sending email:', err); 
         } else {
-            console.log('Email sent:', info.response); // Log thông báo nếu gửi thành công
+            console.log('Email sent:', info.response); 
         }
         
     });
