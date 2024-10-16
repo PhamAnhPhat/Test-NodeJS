@@ -1,0 +1,58 @@
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+<!DOCTYPE html>
+<html lang="en" ng-app="loginApp">
+<head>
+    <meta charset="UTF-8">
+    <title>Login</title>
+</head>
+<body ng-controller="LoginController">
+    <div>
+        <h2>Login</h2>
+        <form ng-submit="login()">
+            <input type="email" ng-model="email" placeholder="Email" required /><br>
+            <input type="password" ng-model="password" placeholder="Password" required /><br>
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div ng-if="showMFA">
+        <h2>Enter MFA Code</h2>
+        <form ng-submit="verifyMFA()">
+            <input type="text" ng-model="otp" placeholder="Enter OTP" required /><br>
+            <button type="submit">Verify</button>
+        </form>
+    </div>
+
+    <script>
+        var app = angular.module('loginApp', []);
+
+        app.controller('LoginController', function ($scope, $http) {
+            $scope.showMFA = false;
+            $scope.token = null;
+
+            $scope.login = function () {
+                $http.post('http://localhost:3000/api/auth/login', { email: $scope.email, password: $scope.password })
+                    .then(function (response) {
+                        $scope.token = response.data.token;
+                        $scope.showMFA = true; // Show MFA form
+                        console.log($scope.token);
+                    })
+                    .catch(function (error) {
+                        alert('Login failed!');
+                    });
+            };
+
+            $scope.verifyMFA = function () {
+                $http.post('http://localhost:3000/api/auth/verify-mfa', { token: $scope.token, otp: $scope.otp })
+                    .then(function (response) {
+                        alert('Login successful');
+                    })
+                    .catch(function (error) {
+                        alert('Invalid OTP');
+                    });
+            
+            };
+        });
+    </script>
+</body>
+</html>
